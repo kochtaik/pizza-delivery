@@ -1,14 +1,13 @@
-const mongoose = require('mongoose');
-const { PRODUCT_TYPES } = require('./constants');
+import { Schema, model } from 'mongoose';
+import { IProduct } from './types';
 
-const ProductSchema = new mongoose.Schema({
+const ProductSchema = new Schema<IProduct>({
   name: {
     type: String,
     required: true,
   },
   type: {
     type: String,
-    enum: PRODUCT_TYPES,
     required: true,
   },
   price: {
@@ -27,4 +26,6 @@ const ProductSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('Product', ProductSchema);
+
+export default model<IProduct>('Product', ProductSchema);
+

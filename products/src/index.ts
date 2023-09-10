@@ -1,7 +1,8 @@
-const express = require('express');
-require('express-async-errors');
-const router = require('./router')
-const { establishDbConnection } = require('./db/connect');
+import express from "express";
+import router from './router';
+import { establishDbConnection } from './db/connect';
+import 'express-async-errors';
+
 const app = express();
 const PORT = 3000;
 
