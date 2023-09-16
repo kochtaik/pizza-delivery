@@ -4,11 +4,12 @@ import { establishDbConnection } from './db/connect';
 import 'express-async-errors';
 
 const app = express();
-const PORT = 3000;
+/* TODO: access via process.env */
+const PORT = 3001;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(router);
+app.use('/products', router);
 
 establishDbConnection().then(() => {
   app.listen(PORT, () => {

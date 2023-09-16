@@ -1,0 +1,77 @@
+version: '3'
+services:
+  products_service:
+    build: 
+      context: './products'
+    ports:
+      - '3001:3001'
+    volumes:
+      - products-service:/usr/src/app
+    depends_on:
+      - products_mongodb
+    networks:
+      - pizza_delivery
+    env_file:
+      - ./products/.env
+
+  products_mongodb:
+    image: mongo
+    ports: 
+      - '27017:27017'
+    volumes:
+      - products-mongodb:/data/db
+      - products-mongodb_config:/data/configdb
+    networks:
+      - pizza_delivery
+    env_file:
+      - ./products/.env
+
+  auth_service:
+    build: 
+      context: './auth'
+    ports:
+      - '3002:3002'
+    volumes:
+      - auth-service:/usr/src/auth-service
+    depends_on:
+      - auth_mongodb
+    networks:
+      - pizza_delivery
+    env_file:
+      - ./auth/.env
+
+  auth_mongodb:
+    image: mongo
+    ports:
+      - '27018:27018'
+    volumes:
+      - auth-mongodb:/data/db
+      - auth-mongodb_config:/data/configdb
+    networks:
+      - pizza_delivery
+    env_file:
+      - ./auth/.env
+
+  mongo-express:
+    image: mongo-express:latest
+    depends_on:
+      - products_mongodb
+      - auth_mongodb
+    ports:
+      - '4000:8081'
+    restart: unless-stopped
+    networks:
+      - pizza_delivery
+    env_file:
+      - .env
+
+volumes:
+  auth-service:
+  products-service:
+  auth-mongodb:
+  products-mongodb:
+  auth-mongodb_config:
+  products-mongodb_config:
+
+networks:
+  pizza_delivery:
