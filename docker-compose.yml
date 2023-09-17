@@ -10,7 +10,7 @@ services:
     depends_on:
       - products_mongodb
     networks:
-      - pizza_delivery
+      - pizza-delivery
     env_file:
       - ./products/.env
 
@@ -22,7 +22,7 @@ services:
       - products-mongodb:/data/db
       - products-mongodb_config:/data/configdb
     networks:
-      - pizza_delivery
+      - pizza-delivery
     env_file:
       - ./products/.env
 
@@ -34,21 +34,35 @@ services:
     volumes:
       - auth-service:/usr/src/auth-service
     networks:
-      - pizza_delivery
+      - pizza-delivery
     env_file:
       - ./auth/.env
 
-  # auth_mongodb:
-  #   image: mongo
-  #   ports:
-  #     - '27018:27018'
-  #   volumes:
-  #     - auth-mongodb:/data/db
-  #     - auth-mongodb_config:/data/configdb
-  #   networks:
-  #     - pizza_delivery
-  #   env_file:
-  #     - ./auth/.env
+  users_service:
+    build:
+      context: './users'
+    ports:
+      - '3003:3003'
+    volumes:
+      - 'users_service:/usr/src/users-service'
+    depends_on:
+      - users_mongodb
+    networks:
+      - pizza-delivery
+    env_file:
+      - ./users/.env
+
+  users_mongodb:
+    image: mongo
+    ports:
+      - '27018:27018'
+    volumes:
+      - users-mongodb:/data/db
+      - users-mongodb_config:/data/configdb
+    networks:
+      - pizza-delivery
+    env_file:
+      - ./users/.env
 
   mongo-express:
     image: mongo-express:latest
@@ -58,16 +72,18 @@ services:
       - '4000:8081'
     restart: unless-stopped
     networks:
-      - pizza_delivery
+      - pizza-delivery
     env_file:
       - .env
 
 volumes:
   auth-service:
   products-service:
+  users_service:
   products-mongodb:
-  auth-mongodb_config:
+  users-mongodb:
   products-mongodb_config:
+  users-mongodb_config:
 
 networks:
-  pizza_delivery:
+  pizza-delivery:
