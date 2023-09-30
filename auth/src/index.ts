@@ -11,11 +11,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/auth', router);
 
-/* TODO: access via process.env */
-
-const PORT = 3002;
-
 const messageBroker = MessageBroker.getInstance();
+
+const PORT = process.env.AUTH_SERVICE_PORT || 3002;
 
 messageBroker.init().then(() => {
   app.listen(PORT, () => {

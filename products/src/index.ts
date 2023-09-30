@@ -4,8 +4,7 @@ import { establishDbConnection } from './db/connect';
 import 'express-async-errors';
 
 const app = express();
-/* TODO: access via process.env */
-const PORT = 3001;
+const PORT = process.env.PRODUCTS_SERVICE_PORT || 3001;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

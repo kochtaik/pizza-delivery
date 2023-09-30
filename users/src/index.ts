@@ -9,8 +9,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/users', router);
 
+const PORT = process.env.USERS_SERVICE_PORT || 3003;
+
 establishDbConnection().then(() => {
-  app.listen(process.env.PORT, () => {
-    console.log("'Users' microservice is listening on port", process.env.PORT);
+  app.listen(PORT, () => {
+    console.log("'Users' microservice is listening on port", PORT);
   });
 });

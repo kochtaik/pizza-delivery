@@ -13,6 +13,41 @@ services:
       - pizza-delivery
     env_file: .env
   
+  users_mongodb:
+    image: mongo
+    ports:
+      - '27018:27018'
+    volumes:
+      - users-mongodb:/data/db
+      - users-mongodb_config:/data/configdb
+    networks:
+      - pizza-delivery
+    depends_on:
+      - rabbitmq
+    env_file: .env
+
+  products_mongodb:
+    image: mongo
+    ports: 
+      - '27017:27017'
+    volumes:
+      - products-mongodb:/data/db
+      - products-mongodb_config:/data/configdb
+    networks:
+      - pizza-delivery
+    env_file: .env
+
+  mongo-express:
+    image: mongo-express:latest
+    depends_on:
+      - products_mongodb
+    ports:
+      - '4000:8081'
+    restart: unless-stopped
+    networks:
+      - pizza-delivery
+    env_file: .env
+  
   auth_service:
     build: 
       context: './auth'
@@ -23,8 +58,7 @@ services:
     depends_on:
       - 'rabbitmq'
     command: sh -c '/bin/wait-for-it.sh rabbitmq:5672 --timeout=30 -- npm run start'
-    env_file:
-      - ./auth/.env
+    env_file: .env
 
   products_service:
     build: 
@@ -37,20 +71,7 @@ services:
       - products_mongodb
     networks:
       - pizza-delivery
-    env_file:
-      - ./products/.env
-
-  products_mongodb:
-    image: mongo
-    ports: 
-      - '27017:27017'
-    volumes:
-      - products-mongodb:/data/db
-      - products-mongodb_config:/data/configdb
-    networks:
-      - pizza-delivery
-    env_file:
-      - ./products/.env
+    env_file: .env
 
   users_service:
     build:
@@ -63,34 +84,7 @@ services:
       - users_mongodb
     networks:
       - pizza-delivery
-    env_file:
-      - ./users/.env
-
-  users_mongodb:
-    image: mongo
-    ports:
-      - '27018:27018'
-    volumes:
-      - users-mongodb:/data/db
-      - users-mongodb_config:/data/configdb
-    networks:
-      - pizza-delivery
-    depends_on:
-      - rabbitmq
-    env_file:
-      - ./users/.env
-
-  mongo-express:
-    image: mongo-express:latest
-    depends_on:
-      - products_mongodb
-    ports:
-      - '4000:8081'
-    restart: unless-stopped
-    networks:
-      - pizza-delivery
-    env_file:
-      - .env
+    env_file: .env
 
 volumes:
   products-service:
