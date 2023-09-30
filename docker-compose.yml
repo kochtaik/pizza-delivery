@@ -1,5 +1,31 @@
 version: '3'
 services:
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: 'rabbitmq'
+    ports: 
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+      - rabbitmq-logs:/var/log/rabbitmq
+    networks:
+      - pizza-delivery
+    env_file: .env
+  
+  auth_service:
+    build: 
+      context: './auth'
+    ports:
+      - '3002:3002'
+    networks:
+      - pizza-delivery
+    depends_on:
+      - 'rabbitmq'
+    command: sh -c '/bin/wait-for-it.sh rabbitmq:5672 --timeout=30 -- npm run start'
+    env_file:
+      - ./auth/.env
+
   products_service:
     build: 
       context: './products'
@@ -26,18 +52,6 @@ services:
     env_file:
       - ./products/.env
 
-  auth_service:
-    build: 
-      context: './auth'
-    ports:
-      - '3002:3002'
-    volumes:
-      - auth-service:/usr/src/auth-service
-    networks:
-      - pizza-delivery
-    env_file:
-      - ./auth/.env
-
   users_service:
     build:
       context: './users'
@@ -61,6 +75,8 @@ services:
       - users-mongodb_config:/data/configdb
     networks:
       - pizza-delivery
+    depends_on:
+      - rabbitmq
     env_file:
       - ./users/.env
 
@@ -77,13 +93,14 @@ services:
       - .env
 
 volumes:
-  auth-service:
   products-service:
   users_service:
   products-mongodb:
   users-mongodb:
   products-mongodb_config:
   users-mongodb_config:
-
+  rabbitmq-data:
+  rabbitmq-logs:
 networks:
   pizza-delivery:
+    driver: bridge

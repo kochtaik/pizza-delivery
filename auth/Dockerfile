@@ -1,17 +1,13 @@
-FROM node:16-alpine
+FROM node:16-alpine as base
 
-# Create app directory
-RUN mkdir -p /usr/src/auth-service
-WORKDIR /usr/src/auth-service
+RUN mkdir /src
+COPY package*.json ./
 
-# Install dependencies
-COPY ./package*.json ./
+
+FROM base
+RUN apk add --no-cache bash
+RUN wget -O /bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
+RUN chmod +x /bin/wait-for-it.sh
 
 RUN npm install
-
-# Bundle app source
 COPY . .
-
-# Exports
-EXPOSE 3002
-CMD [ "npm", "run", "start" ]
