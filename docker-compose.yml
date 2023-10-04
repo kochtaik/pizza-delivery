@@ -15,19 +15,19 @@ services:
   
   users_mongodb:
     image: mongo
+    container_name: 'Users_DB'
     ports:
-      - '27018:27018'
+      - '27018:27017'
     volumes:
       - users-mongodb:/data/db
       - users-mongodb_config:/data/configdb
     networks:
       - pizza-delivery
-    depends_on:
-      - rabbitmq
     env_file: .env
 
   products_mongodb:
     image: mongo
+    container_name: 'Products_DB'
     ports: 
       - '27017:27017'
     volumes:
@@ -39,8 +39,9 @@ services:
 
   mongo-express:
     image: mongo-express:latest
+    container_name: 'Mongo_UI'
     depends_on:
-      - products_mongodb
+      - users_mongodb
     ports:
       - '4000:8081'
     restart: unless-stopped
@@ -49,6 +50,7 @@ services:
     env_file: .env
   
   auth_service:
+    container_name: 'Auth'
     build: 
       context: './auth'
     ports:
@@ -61,6 +63,7 @@ services:
     env_file: .env
 
   products_service:
+    container_name: 'Products'
     build: 
       context: './products'
     ports:
@@ -74,21 +77,21 @@ services:
     env_file: .env
 
   users_service:
+    container_name: "Users"
     build:
       context: './users'
     ports:
       - '3003:3003'
-    volumes:
-      - 'users_service:/usr/src/users-service'
     depends_on:
-      - users_mongodb
+      - 'users_mongodb'
+      - 'rabbitmq'
+    command: sh -c '/bin/wait-for-it.sh rabbitmq:5672 --timeout=30 -- npm run start'
     networks:
       - pizza-delivery
     env_file: .env
 
 volumes:
   products-service:
-  users_service:
   products-mongodb:
   users-mongodb:
   products-mongodb_config:

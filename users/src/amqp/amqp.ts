@@ -2,7 +2,6 @@ import amqp from 'amqplib';
 
 export class MessageBroker {
   private static instance: MessageBroker;
-
   private connection: amqp.Connection | null;
   private channel: amqp.Channel | null;
 
@@ -15,16 +14,34 @@ export class MessageBroker {
     if (!process.env.RABBITMQ_DEFAULT_USER || !process.env.RABBITMQ_DEFAULT_PASS || !process.env.RABBITMQ_URL) {
       throw new Error('Variables RABBITMQ_DEFAULT_USER and/or RABBITMQ_DEFAULT_PASS not provided');
     }
-
-    const credentials = amqp.credentials.plain(process.env.RABBITMQ_DEFAULT_USER, process.env.RABBITMQ_DEFAULT_PASS);
-
     try {
+      const credentials = amqp.credentials.plain(process.env.RABBITMQ_DEFAULT_USER, process.env.RABBITMQ_DEFAULT_PASS);
       this.connection = await amqp.connect(process.env.RABBITMQ_URL, { credentials });
       this.channel = await this.connection.createChannel();
+
+      const queue = "auth.create_user";
+      await this.channel.assertQueue(queue, { durable: true });
+      this.consume(queue);
+
     } catch (error) {
       console.error('Failed to connect to RabbitMQ:', error);
       Promise.reject(error);
     }
+  }
+
+  private async consume(queue: string) {
+    
+    
+    await this.channel!.consume(queue, async (msg) => {
+      if (!msg) return;
+
+      console.log('[Users]: Got a new message', msg.content.toString());
+      await this.channel!.ack(msg);
+    }, {
+      noAck: false,
+      consumerTag: 'signup_consumer',
+    });
+
   }
 
   public static getInstance(): MessageBroker {
@@ -35,14 +52,11 @@ export class MessageBroker {
     return MessageBroker.instance;
   }
 
-  public async publishMessage(exchange: string, queue: string, routingKey: string, message: any): Promise<boolean> {
+  public publishMessage(exchange: string, routingKey: string, message: any): boolean {
     if (!this.channel) {
       throw new Error('You need to initialize the channel before publishing messages');
     }
 
-    await this.channel.assertExchange(exchange, 'direct', { durable: true });
-    await this.channel.assertQueue(queue, { durable: true });
-    await this.channel.bindQueue(queue, exchange, routingKey);
     return this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)));
   }
 

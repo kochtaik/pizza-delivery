@@ -1,8 +1,8 @@
 FROM node:16-alpine as base
 
 RUN mkdir /src
+WORKDIR /src
 COPY package*.json ./
-
 
 FROM base
 RUN apk add --no-cache bash

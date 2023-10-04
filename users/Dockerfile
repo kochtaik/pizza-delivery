@@ -1,12 +1,13 @@
-FROM node:16-alpine
+FROM node:16-alpine as base
 
-RUN mkdir -p /usr/src/users-service
-WORKDIR /usr/src/users-service
+RUN mkdir /src
+WORKDIR /src
+COPY package*.json ./
 
-COPY ./package*.json .
+FROM base
+RUN apk add --no-cache bash
+RUN wget -O /bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
+RUN chmod +x /bin/wait-for-it.sh
+
 RUN npm install
-
 COPY . .
-
-EXPOSE 3003
-CMD [ "npm", "run", "start" ]
